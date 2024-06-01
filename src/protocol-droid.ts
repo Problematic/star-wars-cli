@@ -37,7 +37,7 @@ export default class ProtocolDroid {
    */
   displayResult(result: ApiResponse): boolean {
     if ('error' in result && result.page === -1) {
-      console.error(chalk.bold.red('An error occurred:', result.error))
+      console.error(chalk.bold.red(result.error))
       return true
     }
 
