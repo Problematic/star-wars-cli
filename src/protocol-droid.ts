@@ -18,7 +18,10 @@ export type ApiError = {
 export type ApiResponse = ApiError | ApiResult
 
 export default class ProtocolDroid {
-  constructor(private readonly socket: Socket) {}
+  constructor(
+    private readonly socket: Socket,
+    public readonly standalone = false,
+  ) {}
 
   async query() {
     const query = await input({

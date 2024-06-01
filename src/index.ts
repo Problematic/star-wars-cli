@@ -13,21 +13,25 @@ program
   .description('Interface to the Valstro Star Wars API')
   .version('0.0.1')
 
-program.option(
-  '-u, --uri <apiUrl>',
-  'API server to use',
-  'http://localhost:3000',
-)
+program
+  .argument('[query...]', 'The search query to send to the server')
+  .option('-u, --uri <apiUrl>', 'API server to use', 'http://localhost:3000')
 
-program.action(async (args) => {
-  process.stdout.write(`Connecting to ${args.uri}... `)
+program.action(async (args: string[], opts) => {
+  const socket = io(opts.uri)
+  const droid = new ProtocolDroid(socket, args.length > 0)
 
-  const socket = io(args.uri)
-  const droid = new ProtocolDroid(socket)
+  if (!droid.standalone) {
+    process.stdout.write(`Connecting to ${opts.uri}... `)
+  }
 
   socket.on('connect', async () => {
-    process.stdout.write(`connected.\n`)
-    droid.query()
+    if (!droid.standalone) {
+      process.stdout.write(`connected.\n`)
+      droid.query()
+    } else {
+      socket.emit('search', { query: args.join(' ') })
+    }
   })
 
   socket.on('error', (error) => {
@@ -36,7 +40,9 @@ program.action(async (args) => {
   })
 
   socket.on('disconnect', () => {
-    console.log('Disconnected from server')
+    if (!droid.standalone) {
+      console.log('Disconnected from server')
+    }
   })
 
   socket.on('connect_error', (error) => {
@@ -48,10 +54,14 @@ program.action(async (args) => {
 
   socket.on('search', (result) => {
     if (droid.displayResult(result)) {
-      droid.query()
+      if (!droid.standalone) {
+        droid.query()
+      } else {
+        socket.disconnect()
+      }
     }
   })
 })
-;(async () => {
+;(async function () {
   await program.parseAsync()
 })()
