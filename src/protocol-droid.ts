@@ -1,5 +1,6 @@
 import { Socket } from 'socket.io-client'
 import input from '@inquirer/input'
+import chalk from 'chalk'
 
 export type ApiResult = {
   page: number
@@ -33,12 +34,13 @@ export default class ProtocolDroid {
    */
   displayResult(result: ApiResponse): boolean {
     if ('error' in result && result.page === -1) {
-      console.error('An error occurred:', result.error)
+      console.error(chalk.bold.red('An error occurred:', result.error))
       return true
     }
 
     console.log(
-      `(${result.page}/${result.resultCount}) ${result.name} - [${result.films}]`,
+      chalk.dim.gray(`(${result.page}/${result.resultCount})`),
+      `${chalk.blue(result.name)} - ${chalk.greenBright(`[${result.films}]`)}`,
     )
 
     return result.page === result.resultCount

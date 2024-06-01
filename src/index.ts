@@ -2,6 +2,7 @@
 
 import { Command } from 'commander'
 import { io } from 'socket.io-client'
+import chalk from 'chalk'
 
 import ProtocolDroid from './protocol-droid'
 
@@ -19,13 +20,13 @@ program.option(
 )
 
 program.action(async (args) => {
-  console.log(`Connecting to ${args.uri}...`)
+  process.stdout.write(`Connecting to ${args.uri}... `)
 
   const socket = io(args.uri)
   const droid = new ProtocolDroid(socket)
 
   socket.on('connect', async () => {
-    console.log(`Connected.`)
+    process.stdout.write(`connected.\n`)
     droid.query()
   })
 
@@ -39,7 +40,9 @@ program.action(async (args) => {
   })
 
   socket.on('connect_error', (error) => {
-    console.error('Failed to connect to server:', error.message)
+    console.error(
+      chalk.bold.red(`\nFailed to connect to server: ${error.message}`),
+    )
     socket.disconnect()
   })
 
@@ -49,4 +52,6 @@ program.action(async (args) => {
     }
   })
 })
-;(async () => await program.parseAsync())()
+;(async () => {
+  await program.parseAsync()
+})()
